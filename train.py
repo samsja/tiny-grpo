@@ -160,7 +160,7 @@ def sequences_log_probs(
 ) -> torch.Tensor:
     position_ids = attention_mask.long().cumsum(dim=-1) - 1
     position_ids.masked_fill_(mask=(attention_mask == 0), value=1)
-    output = model.forward(
+    output = model(
         input_ids=sequence_ids,
         attention_mask=attention_mask,
         position_ids=position_ids,
@@ -218,15 +218,15 @@ def load_model_fsdp(
         model_name_or_path,
         trust_remote_code=trust_remote_code,
         attn_implementation="flash_attention_2",
-        torch_dtype=torch.bfloat16,
-    )
+        # torch_dtype=torch.bfloat16,
+    ).to(dist.get_rank())
     
     # Define mixed precision policy
     mp_policy = MixedPrecisionPolicy(
         param_dtype=torch.bfloat16,
         reduce_dtype=torch.float32 if reduce_fp32 else None
     )
-    
+
     # Apply FSDP to transformer layers
     for layer_id, transformer_block in enumerate(model.model.layers):
         # Reshard all layers except the last one if enabled
