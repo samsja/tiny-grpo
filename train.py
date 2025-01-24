@@ -386,7 +386,7 @@ def main():
                     action_mask=action_mask,
                     kl=kl,
                 )
-                replay_buffer.append(experience.cpu())
+                replay_buffer.append(experience.to("cpu"))
 
         if dist.get_rank() == 0:
             episode_return_sum = torch.stack(rollout_returns).sum()
